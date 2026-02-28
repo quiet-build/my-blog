@@ -8,12 +8,13 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# vite
+/dist/
 
-# production
-/build
+# generated build data
+/public/data/
+/public/feed.xml
+/public/feed
 
 # misc
 .DS_Store

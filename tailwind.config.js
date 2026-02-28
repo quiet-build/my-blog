@@ -1,9 +1,9 @@
-import { config } from './lib/server/config'
-import { FONTS_SANS, FONTS_SERIF } from './consts'
+import config from './blog.config.js'
+import { FONTS_SANS, FONTS_SERIF } from './src/consts.js'
 
 // eslint-disable-next-line import/no-anonymous-default-export
 export default {
-  content: ['./pages/**/*.js', './components/**/*.js', './layouts/**/*.js'],
+  content: ['./src/**/*.{js,jsx}', './index.html'],
   darkMode: 'class',
   theme: {
     extend: {
