@@ -18,7 +18,6 @@ export async function getStaticProps ({ params }) {
       posts: filteredPosts,
       currentTag
     },
-    revalidate: 1
   }
 }
 
@@ -27,6 +26,6 @@ export async function getStaticPaths () {
   const tags = getAllTagsFromPosts(posts)
   return {
     paths: Object.keys(tags).map(tag => ({ params: { tag } })),
-    fallback: true
+    fallback: false
   }
 }

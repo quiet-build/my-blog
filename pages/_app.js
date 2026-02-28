@@ -5,6 +5,7 @@ import App from 'next/app'
 import '@/styles/globals.css'
 import '@/styles/notion.css'
 import dynamic from 'next/dynamic'
+import BLOG from '@/blog.config'
 import loadLocale from '@/assets/i18n'
 import { ConfigProvider } from '@/lib/config'
 import { LocaleProvider } from '@/lib/locale'
@@ -38,9 +39,7 @@ export default function MyApp ({ Component, pageProps, config, locale }) {
 }
 
 MyApp.getInitialProps = async ctx => {
-  const config = typeof window === 'object'
-    ? await fetch('/api/config').then(res => res.json())
-    : await import('@/lib/server/config').then(module => module.clientConfig)
+  const config = BLOG
 
   prepareDayjs(config.timezone)
 

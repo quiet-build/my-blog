@@ -1,0 +1,5 @@
+/feed.xml
+  Content-Type: application/xml
+
+/*
+  Permissions-Policy: interest-cohort=()

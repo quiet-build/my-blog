@@ -74,7 +74,7 @@ export async function getStaticPaths () {
   const posts = await getAllPosts({ includePages: true })
   return {
     paths: posts.map(row => `${clientConfig.path}/${row.slug}`),
-    fallback: true
+    fallback: false
   }
 }
 
@@ -92,7 +92,6 @@ export async function getStaticProps ({ params: { slug } }) {
     .toLowerCase()
 
   return {
-    props: { post, blockMap, emailHash },
-    revalidate: 1
+    props: { post, blockMap, emailHash }
   }
 }
