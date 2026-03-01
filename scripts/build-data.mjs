@@ -11,7 +11,10 @@ const NOTION_ACCESS_TOKEN = process.env.NOTION_ACCESS_TOKEN
 const NOTION_PAGE_ID = process.env.NOTION_PAGE_ID || BLOG.notionPageId
 
 if (!NOTION_PAGE_ID) {
-  console.error('NOTION_PAGE_ID is not set. Please set it as an environment variable or in blog.config.js.')
+  console.error('NOTION_PAGE_ID is not set.')
+  console.error('process.env.NOTION_PAGE_ID:', JSON.stringify(process.env.NOTION_PAGE_ID))
+  console.error('BLOG.notionPageId:', JSON.stringify(BLOG.notionPageId))
+  console.error('Available env vars with NOTION:', Object.keys(process.env).filter(k => k.includes('NOTION')))
   process.exit(1)
 }
 
