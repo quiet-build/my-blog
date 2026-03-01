@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { NotionAPI } from 'notion-client'
 import { idToUuid, getTextContent, getDateValue } from 'notion-utils'
 import { Feed } from 'feed'
@@ -18,6 +19,12 @@ const api = new NotionAPI({ authToken: NOTION_ACCESS_TOKEN })
 
 // --- Notion data fetching logic (ported from lib/notion/) ---
 
+// notion-client may nest block data as block[id].value or block[id].value.value
+function getBlockValue(block, id) {
+  const raw = block?.[id]?.value
+  return raw?.type ? raw : raw?.value
+}
+
 function getAllPageIds(collectionQuery) {
   const views = Object.values(collectionQuery)[0]
   const pageSet = new Set()
@@ -28,7 +35,8 @@ function getAllPageIds(collectionQuery) {
 }
 
 async function getPageProperties(id, block, schema) {
-  const rawProperties = Object.entries(block?.[id]?.value?.properties || [])
+  const blockValue = getBlockValue(block, id)
+  const rawProperties = Object.entries(blockValue?.properties || [])
   const excludeProperties = ['date', 'select', 'multi_select', 'person']
   const properties = {}
   for (let i = 0; i < rawProperties.length; i++) {
@@ -103,12 +111,14 @@ async function getAllPosts({ includePages = false } = {}) {
 
   const response = await api.getPage(id)
 
-  const collection = Object.values(response.collection)[0]?.value
+  const rawCollection = Object.values(response.collection)[0]?.value
+  // Handle double-nested value like blocks
+  const collection = rawCollection?.schema ? rawCollection : rawCollection?.value
   const collectionQuery = response.collection_query
   const block = response.block
   const schema = collection?.schema
 
-  const rawMetadata = block[id].value
+  const rawMetadata = getBlockValue(block, id)
 
   if (
     rawMetadata?.type !== 'collection_view_page' &&
@@ -127,11 +137,12 @@ async function getAllPosts({ includePages = false } = {}) {
     const properties = (await getPageProperties(pageId, block, schema)) || null
     if (!properties) continue
 
-    properties.fullWidth = block[pageId].value?.format?.page_full_width ?? false
+    const pageBlock = getBlockValue(block, pageId)
+    properties.fullWidth = pageBlock?.format?.page_full_width ?? false
     properties.date = (
       properties.date?.start_date
         ? new Date(properties.date.start_date).getTime()
-        : block[pageId].value?.created_time
+        : pageBlock?.created_time
     ) || Date.now()
 
     data.push(properties)
