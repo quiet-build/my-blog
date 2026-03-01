@@ -56,6 +56,6 @@ const BLOG = {
       scriptSrc: 'https://cusdis.com/js/cusdis.es.js' // change this if you're using self-hosted version
     }
   },
-  isProd: import.meta.env?.PROD ?? false
+  isProd: typeof import.meta.env !== 'undefined' ? import.meta.env.PROD : false
 }
 export default BLOG
