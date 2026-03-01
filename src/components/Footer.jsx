@@ -1,5 +1,4 @@
 import { useConfig } from '@/lib/config'
-import Vercel from '@/components/Vercel'
 const Footer = ({ fullWidth }) => {
   const BLOG = useConfig()
 
@@ -14,12 +13,9 @@ const Footer = ({ fullWidth }) => {
     >
       <hr className="border-gray-200 dark:border-gray-600" />
       <div className="my-4 text-sm leading-6">
-        <div className="flex align-baseline justify-between flex-wrap">
-          <p>
-            &copy; {BLOG.author} {from === y || !from ? y : `${from} - ${y}`}
-          </p>
-          <Vercel />
-        </div>
+        <p>
+          &copy; {BLOG.author} {from === y || !from ? y : `${from} - ${y}`}
+        </p>
       </div>
     </div>
   )
