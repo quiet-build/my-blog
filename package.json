@@ -9,9 +9,9 @@
     "url": "https://github.com/craigary/nobelium.git"
   },
   "author": {
-    "name": "Craig Hart",
-    "email": "i@craigary.net",
-    "url": "http://craigary.net"
+    "name": "ming wu",
+    "email": "matwming114@gmail.com",
+    "url": ""
   },
   "scripts": {
     "dev": "node scripts/build-data.mjs && vite",
@@ -53,8 +53,8 @@
     "vite": "^6.0.0"
   },
   "bugs": {
-    "url": "https://github.com/craigary/nobelium/issues",
-    "email": "i@craigary.net"
+    "url": "https://github.com/mingwuming/my-nextjs-blog/issues",
+    "email": "matwming114@gmail.com"
   },
   "pnpm": {
     "patchedDependencies": {
