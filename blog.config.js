@@ -23,8 +23,8 @@ const BLOG = {
     keywords: ['Blog', 'Website', 'Notion'],
     googleSiteVerification: '' // Remove the value or replace it with your own google site verification code
   },
-  notionPageId: process.env.NOTION_PAGE_ID, // DO NOT CHANGE THIS！！！
-  notionAccessToken: process.env.NOTION_ACCESS_TOKEN, // Useful if you prefer not to make your database public
+  notionPageId: '', // Set via NOTION_PAGE_ID env var in .env (used by build script only)
+  notionAccessToken: '', // Set via NOTION_ACCESS_TOKEN env var in .env (used by build script only)
   analytics: {
     provider: '', // Currently we support Google Analytics and Ackee, please fill with 'ga' or 'ackee', leave it empty to disable it.
     ackeeConfig: {
@@ -56,6 +56,6 @@ const BLOG = {
       scriptSrc: 'https://cusdis.com/js/cusdis.es.js' // change this if you're using self-hosted version
     }
   },
-  isProd: typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'
+  isProd: import.meta.env?.PROD ?? false
 }
 export default BLOG
