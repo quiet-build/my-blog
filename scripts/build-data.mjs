@@ -5,7 +5,7 @@ import { Feed } from 'feed'
 import { createHash } from 'crypto'
 import fs from 'fs'
 import path from 'path'
-import BLOG from '../blog.config.js'
+import BLOG from '../blog.config.ts'
 
 const NOTION_ACCESS_TOKEN = process.env.NOTION_ACCESS_TOKEN
 const NOTION_PAGE_ID = process.env.NOTION_PAGE_ID || BLOG.notionPageId
