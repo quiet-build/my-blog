@@ -377,15 +377,18 @@ import { extractProps } from '../src/lib/notion.mjs'
 const NOTION_TOKEN = process.env.NOTION_TOKEN
 const DATABASE_ID = process.env.NOTION_DATABASE_ID
 
+const OUT_DIR = path.resolve(process.cwd(), 'src/content/posts')
+
+// Resilient: without creds, ensure an empty collection dir and continue so the
+// scaffold still builds. CI/production should always have the env vars set.
 if (!NOTION_TOKEN || !DATABASE_ID) {
-  console.error('Missing NOTION_TOKEN or NOTION_DATABASE_ID. Copy .env.example to .env and fill them.')
-  process.exit(1)
+  console.warn('⚠ NOTION_TOKEN / NOTION_DATABASE_ID not set — skipping Notion sync, building with no posts.')
+  fs.mkdirSync(OUT_DIR, { recursive: true })
+  process.exit(0)
 }
 
 const notion = new Client({ auth: NOTION_TOKEN })
 const n2m = new NotionToMarkdown({ notionClient: notion })
-
-const OUT_DIR = path.resolve(process.cwd(), 'src/content/posts')
 
 function yamlEscape(s) {
   return JSON.stringify(s ?? '')
