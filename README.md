@@ -12,22 +12,22 @@ A static blog built with [Astro](https://astro.build), content sourced from Noti
 
 ```bash
 cp .env.example .env   # fill NOTION_TOKEN and NOTION_DATABASE_ID
-npm install
-npm run dev            # syncs Notion, then starts the dev server
+pnpm install
+pnpm dev               # syncs Notion, then starts the dev server
 ```
 
 Without Notion credentials the site still builds with zero posts.
 
 ## Scripts
 
-| Command         | Action                                          |
-| --------------- | ----------------------------------------------- |
-| `npm run sync`  | Fetch Notion content into `src/content/posts/`  |
-| `npm run dev`   | Sync, then start the dev server                 |
-| `npm run build` | Sync, then build the static site to `dist/`     |
-| `npm run check` | Type-check with `astro check`                   |
-| `npm test`      | Run unit tests                                  |
+| Command       | Action                                          |
+| ------------- | ----------------------------------------------- |
+| `pnpm sync`   | Fetch Notion content into `src/content/posts/`  |
+| `pnpm dev`    | Sync, then start the dev server                 |
+| `pnpm build`  | Sync, then build the static site to `dist/`     |
+| `pnpm check`  | Type-check with `astro check`                   |
+| `pnpm test`   | Run unit tests                                  |
 
 ## Deploy
 
-Cloudflare Pages — build command `npm run build`, output directory `dist`, with `NOTION_TOKEN` and `NOTION_DATABASE_ID` set as environment variables.
+Cloudflare Pages — build command `pnpm build`, output directory `dist`, with `NOTION_TOKEN` and `NOTION_DATABASE_ID` set as environment variables.
