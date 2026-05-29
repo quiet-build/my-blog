@@ -4,7 +4,7 @@ export const SITE = {
   description: 'This gonna be an awesome website.',
   since: 2021,
   postsPerPage: 7,
-  socialLink: 'https://twitter.com/craigaryhart'
+  socialLink: '' // your social profile URL (leave empty to hide)
 } as const
 
 export const NAV = [

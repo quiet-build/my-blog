@@ -1,1 +1,2 @@
-/feed /feed.xml 301
+/feed /rss.xml 301
+/feed.xml /rss.xml 301
