@@ -1,0 +1,5 @@
+---
+interface Props { tag: string }
+const { tag } = Astro.props
+---
+<a href={`/tags/${tag}`} class="px-2 py-0.5 text-xs rounded-full bg-[var(--secondary)] text-[var(--secondary-foreground)] hover:bg-[var(--accent)]">#{tag}</a>

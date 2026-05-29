@@ -1,0 +1,21 @@
+---
+import BaseLayout from './BaseLayout.astro'
+import Comments from '../components/Comments.astro'
+import TagPill from '../components/TagPill.astro'
+import { formatDate } from '../lib/date.mjs'
+interface Props { title: string; date: string; tags: string[]; notionId: string; summary?: string }
+const { title, date, tags, notionId, summary } = Astro.props
+---
+<BaseLayout title={title} description={summary}>
+  <article class="prose-content">
+    <h1 class="text-3xl font-bold">{title}</h1>
+    <div class="flex items-center gap-3 mt-2 text-sm text-[var(--muted-foreground)]">
+      <time>{formatDate(date)}</time>
+      <div class="flex gap-2">{tags.map(t => <TagPill tag={t} />)}</div>
+    </div>
+    <div class="mt-8 leading-relaxed [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_p]:my-4 [&_a]:text-[var(--primary)] [&_a]:underline [&_pre]:rounded-lg [&_pre]:p-4 [&_pre]:overflow-x-auto [&_ul]:list-disc [&_ul]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-[var(--border)] [&_blockquote]:pl-4 [&_blockquote]:italic">
+      <slot />
+    </div>
+  </article>
+  <Comments notionId={notionId} />
+</BaseLayout>

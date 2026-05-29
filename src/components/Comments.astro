@@ -1,0 +1,5 @@
+---
+interface Props { notionId: string }
+const { notionId } = Astro.props
+---
+<div data-comments={notionId} class="mt-12"></div>
