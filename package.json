@@ -3,7 +3,10 @@
   "version": "2.0.0",
   "type": "module",
   "license": "MIT",
-  "author": { "name": "Ming", "email": "matwming114@gmail.com" },
+  "author": {
+    "name": "Ming",
+    "email": "matwming114@gmail.com"
+  },
   "scripts": {
     "sync": "node scripts/build-data.mjs",
     "dev": "node scripts/build-data.mjs && astro dev",
@@ -21,6 +24,7 @@
     "@tailwindcss/vite": "^4.0.0",
     "astro": "^5.2.0",
     "katex": "^0.16.11",
+    "lit-talk": "^1.0.7",
     "notion-to-md": "^3.1.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
