@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "@quietbuildlab/ui/themes/manuscript.css";
+@source "../../node_modules/@quietbuildlab/ui/dist";
+
+@import "katex/dist/katex.min.css";
+
+/* base page surface from design-system tokens */
+html { background: var(--background); color: var(--foreground); }
