@@ -41,12 +41,25 @@ function frontmatter(p) {
   ].join('\n')
 }
 
+// @notionhq/client v5 (API 2025-09-03) replaced databases.query with the
+// data-source API: a database holds one or more data sources, and you query a
+// data source. Resolve the database's first data source, then page through it.
+async function resolveDataSourceId() {
+  const db = await notion.databases.retrieve({ database_id: DATABASE_ID })
+  const id = db.data_sources?.[0]?.id
+  if (!id) {
+    throw new Error(`Database ${DATABASE_ID} has no data sources. Share the database with your integration.`)
+  }
+  return id
+}
+
 async function queryAll() {
+  const dataSourceId = await resolveDataSourceId()
   const results = []
   let cursor
   do {
-    const res = await notion.databases.query({
-      database_id: DATABASE_ID,
+    const res = await notion.dataSources.query({
+      data_source_id: dataSourceId,
       start_cursor: cursor
     })
     results.push(...res.results)

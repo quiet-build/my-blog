@@ -3,6 +3,7 @@
   "version": "2.0.0",
   "type": "module",
   "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
   "author": {
     "name": "Ming",
     "email": "matwming114@gmail.com"
@@ -13,30 +14,30 @@
     "build": "node scripts/build-data.mjs && astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "node --test src/lib/"
+    "test": "node --test \"src/lib/*.test.mjs\""
   },
   "dependencies": {
-    "@astrojs/react": "^4.2.0",
-    "@astrojs/rss": "^4.0.11",
-    "@astrojs/sitemap": "^3.2.1",
-    "@notionhq/client": "^2.2.15",
+    "@astrojs/react": "^5.0.6",
+    "@astrojs/rss": "^4.0.18",
+    "@astrojs/sitemap": "^3.7.3",
+    "@notionhq/client": "^5.22.0",
     "@quietbuildlab/ui": "^0.6.0",
-    "@tailwindcss/vite": "^4.0.0",
-    "astro": "^5.2.0",
-    "katex": "^0.16.11",
+    "@tailwindcss/vite": "^4.3.0",
+    "astro": "^6.4.1",
+    "katex": "^0.17.0",
     "lit-talk": "^1.0.7",
     "notion-to-md": "^3.1.9",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
-    "tailwindcss": "^4.0.0"
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "dotenv": "^16.4.5",
-    "typescript": "^5.9.3"
+    "@astrojs/check": "^0.9.9",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "dotenv": "^17.4.2",
+    "typescript": "^6.0.3"
   }
 }
