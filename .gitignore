@@ -40,3 +40,9 @@ yarn-error.log*
 public/robots.txt
 public/sitemap.xml
 .env*.local
+
+# Astro
+dist/
+.astro/
+# Generated Notion content
+src/content/posts/

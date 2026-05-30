@@ -1,0 +1,9 @@
+---
+interface Props { prevUrl?: string; nextUrl?: string; current: number; total: number }
+const { prevUrl, nextUrl, current, total } = Astro.props
+---
+<nav class="flex justify-between items-center py-8 text-sm">
+  {prevUrl ? <a href={prevUrl} class="hover:text-[var(--primary)]">← Newer</a> : <span></span>}
+  <span class="text-[var(--muted-foreground)]">{current} / {total}</span>
+  {nextUrl ? <a href={nextUrl} class="hover:text-[var(--primary)]">Older →</a> : <span></span>}
+</nav>

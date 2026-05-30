@@ -1,0 +1,12 @@
+---
+import { LIT_TALK } from '../consts.comments'
+interface Props { notionId: string }
+const { notionId } = Astro.props
+const options = JSON.stringify({ ...LIT_TALK, postUniqueId: notionId })
+---
+<div class="mt-12 max-w-2xl mx-auto">
+  <lit-talk github-oauth-options={options}></lit-talk>
+</div>
+<script>
+  import 'lit-talk'
+</script>

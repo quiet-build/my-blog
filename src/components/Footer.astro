@@ -1,0 +1,7 @@
+---
+import { SITE } from '../consts'
+const year = new Date().getFullYear()
+---
+<footer class="border-t border-[var(--border)] py-6 text-center text-sm text-[var(--muted-foreground)]">
+  <p>© {SITE.since}–{year} {SITE.author}.{SITE.socialLink && <> <a class="hover:text-[var(--primary)]" href={SITE.socialLink}>Social</a> ·</>} <a class="hover:text-[var(--primary)]" href="/rss.xml">RSS</a></p>
+</footer>
