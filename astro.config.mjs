@@ -5,9 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 
-// Update `site` to the real deployed URL after first Cloudflare deploy.
+// Update `site` if you attach a custom domain.
 export default defineConfig({
-  site: 'https://my-blog.pages.dev',
+  site: 'https://my-blog-b2x.pages.dev',
   output: 'static',
   integrations: [react(), sitemap()],
   vite: { plugins: [tailwindcss()] },
