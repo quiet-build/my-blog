@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Decision Alpha — Implementation Plan</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #171a23;
+    --panel-2: #1d212c;
+    --border: #2a2f3d;
+    --text: #e6e9ef;
+    --muted: #9aa3b2;
+    --accent: #5b9dff;
+    --green: #3ecf8e;
+    --amber: #f5a623;
+    --red: #ff6b6b;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: var(--sans); line-height: 1.6; font-size: 16px;
+  }
+  .layout { display: grid; grid-template-columns: 260px 1fr; max-width: 1280px; margin: 0 auto; }
+  nav {
+    position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto;
+    padding: 28px 18px; border-right: 1px solid var(--border); background: var(--panel);
+  }
+  nav h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+  nav a { display: block; color: var(--muted); text-decoration: none; padding: 5px 10px; border-radius: 6px; font-size: 14px; }
+  nav a:hover { color: var(--text); background: var(--panel-2); }
+  nav .tag { font-size: 11px; color: var(--accent); margin: 16px 0 6px; text-transform: uppercase; letter-spacing: .05em; }
+  main { padding: 48px 56px; min-width: 0; }
+  header.hero { margin-bottom: 40px; }
+  .pill { display: inline-block; font-size: 12px; font-weight: 600; color: var(--accent); background: rgba(91,157,255,.12);
+    border: 1px solid rgba(91,157,255,.3); padding: 3px 12px; border-radius: 999px; letter-spacing: .04em; }
+  h1 { font-size: 40px; margin: 14px 0 8px; line-height: 1.1; letter-spacing: -.02em; }
+  .sub { font-size: 19px; color: var(--muted); margin: 0; max-width: 70ch; }
+  h2.section { font-size: 26px; margin: 56px 0 8px; padding-top: 12px; border-top: 1px solid var(--border); letter-spacing: -.01em; }
+  h2.section .num { color: var(--accent); font-variant-numeric: tabular-nums; margin-right: 10px; }
+  h3 { font-size: 18px; margin: 28px 0 8px; }
+  p { margin: 10px 0; }
+  .muted { color: var(--muted); }
+  code { font-family: var(--mono); font-size: 13px; background: var(--panel-2); padding: 2px 6px; border-radius: 4px; color: #cfe1ff; }
+  pre { background: #11141c; border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.5; }
+  pre code { background: none; padding: 0; color: var(--text); }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  .callout { border-radius: 10px; padding: 14px 18px; margin: 18px 0; border: 1px solid var(--border); background: var(--panel); }
+  .callout.warn { border-color: rgba(245,166,35,.4); background: rgba(245,166,35,.07); }
+  .callout.good { border-color: rgba(62,207,142,.35); background: rgba(62,207,142,.06); }
+  .callout.key { border-color: rgba(91,157,255,.4); background: rgba(91,157,255,.07); }
+  .callout strong { color: var(--text); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .card h3 { margin-top: 0; }
+  .flow { display: flex; flex-direction: column; gap: 0; margin: 20px 0; font-family: var(--mono); font-size: 13px; }
+  .flow .box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; }
+  .flow .arrow { text-align: center; color: var(--muted); padding: 4px 0; }
+  .phase { display: grid; grid-template-columns: 90px 1fr; gap: 18px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+  .phase .when { font-weight: 700; color: var(--accent); font-size: 15px; }
+  .phase .when small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .badge.green { color: var(--green); background: rgba(62,207,142,.12); }
+  .badge.amber { color: var(--amber); background: rgba(245,166,35,.12); }
+  .badge.red { color: var(--red); background: rgba(255,107,107,.12); }
+  ul.clean { margin: 10px 0; padding-left: 20px; }
+  ul.clean li { margin: 6px 0; }
+  .formula { background: #11141c; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 14px 18px; margin: 14px 0; font-family: var(--mono); font-size: 14px; }
+  .kpi { display: flex; gap: 24px; flex-wrap: wrap; margin: 16px 0; }
+  .kpi .item { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; min-width: 150px; }
+  .kpi .item .n { font-size: 24px; font-weight: 700; color: var(--accent); }
+  .kpi .item .l { font-size: 12px; color: var(--muted); }
+  footer { margin: 60px 0 20px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); padding-top: 16px; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    nav { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    main { padding: 28px 22px; }
+    .grid2 { grid-template-columns: 1fr; }
+    h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav>
+  <h2>Contents</h2>
+  <div class="tag">Strategy</div>
+  <a href="#overview">0 · Overview</a>
+  <a href="#thesis">1 · Product thesis</a>
+  <a href="#constraint">2 · The core constraint</a>
+  <div class="tag">Build</div>
+  <a href="#arch">3 · Architecture</a>
+  <a href="#api">4 · eToro endpoints used</a>
+  <a href="#data">5 · Data model</a>
+  <a href="#diff">6 · Diff &amp; event engine</a>
+  <a href="#scoring">7 · Scoring engine</a>
+  <div class="tag">Ship</div>
+  <a href="#roadmap">8 · Phased roadmap</a>
+  <a href="#coldstart">9 · Cold-start strategy</a>
+  <a href="#stack">10 · Tech stack &amp; scale</a>
+  <a href="#money">11 · Distribution &amp; money</a>
+  <a href="#risks">12 · Risks &amp; open questions</a>
+</nav>
+
+<main>
+<header class="hero">
+  <span class="pill">IMPLEMENTATION PLAN · DRAFT FOR REVIEW</span>
+  <h1>Decision&nbsp;Alpha</h1>
+  <p class="sub">A skill-verification tool for copy trading. It watches eToro Popular Investors over time, grades their actual buy/sell <em>decisions</em>, and tells you who is genuinely skilled — before you copy them.</p>
+  <div class="kpi">
+    <div class="item"><div class="n">40M</div><div class="l">eToro users (distribution)</div></div>
+    <div class="item"><div class="n">$0</div><div class="l">API cost (free, rate-limited)</div></div>
+    <div class="item"><div class="n">v1</div><div class="l">ships with zero cold-start</div></div>
+  </div>
+</header>
+
+<h2 class="section" id="overview"><span class="num">0</span>Overview</h2>
+<p>BullAware (now eToro-owned) and BigFatBat already analyse <strong>returns and current holdings</strong>. Nobody grades the <strong>quality of an investor's decisions over time</strong> — because eToro's API exposes no <em>public</em> ledger of an arbitrary investor's closed trades (only the authenticated user's own — see §2), so the data has to be <em>accumulated</em> by snapshotting. That accumulation is the moat. This plan builds the data collector first, launches on an instant-value feature that needs no history, and lets the decision-grading engine mature underneath into the retention/paid layer.</p>
+<div class="callout key">
+  <strong>One-line pitch:</strong> "Returns tell you what happened. Decision Alpha tells you whether it was skill — so you know who's actually worth copying."
+</div>
+
+<h2 class="section" id="thesis"><span class="num">1</span>Product thesis</h2>
+<table>
+  <tr><th>Question the user has</th><th>What everyone shows</th><th>What Decision Alpha shows</th></tr>
+  <tr><td>Is this investor's track record real?</td><td>Total return % (could be leverage + a bull market)</td><td>Risk-adjusted, regime-tested decision quality</td></tr>
+  <tr><td>Is the headline return real or luck?</td><td>The headline gain %</td><td><strong>Risk-adjusted, regime-tested</strong> verdict from the public return series</td></tr>
+  <tr><td>Are their buys skilled?</td><td>Current holdings</td><td>Entry-timing alpha vs. sector after each buy</td></tr>
+  <tr><td>Are their sells smart?</td><td>Nothing</td><td>Exit-timing alpha: did selling dodge losses or miss gains?</td></tr>
+  <tr><td>Should I worry right now?</td><td>A static risk score</td><td>Blow-up risk trend (rising risk + drawdown + copier exodus)</td></tr>
+</table>
+
+<h2 class="section" id="constraint"><span class="num">2</span>The core constraint (verified against the API)</h2>
+<div class="callout warn">
+  <strong>There is no public endpoint that returns an arbitrary investor's closed-trade ledger.</strong> <code>GET /user-info/people/{username}/tradeinfo</code> returns aggregate stats only; <code>GET /user-info/people/{username}/portfolio/live</code> gives only currently <em>open</em> positions. (The authenticated user's <em>own</em> real-account history <strong>does</strong> exist via <code>GET /trading/info/trade/history</code> with <code>openRate</code>/<code>closeRate</code> + timestamps — usable for personalization &amp; the user's own copying, but not for grading other PIs.)
+</div>
+<p>Consequences that shape the whole build:</p>
+<ul class="clean">
+  <li><strong>Buys are directly observable</strong> — a live position carries <code>openRate</code> (entry price), <code>openTimestamp</code>, <code>instrumentId</code>, <code>isBuy</code>, <code>leverage</code>, <code>investmentPct</code>, <code>netProfit</code>.</li>
+  <li><strong>Sells are observable only by inference</strong> — a position that <em>disappears</em> between two snapshots = an exit. Exit timing is known to ~1 day; exit price is <em>estimated</em> from market candles.</li>
+  <li><strong>No backfill.</strong> We only know decisions made <em>after</em> we start polling. → start the collector immediately (see §9).</li>
+  <li><strong>Copy-trades are separable</strong> — positions carry <code>socialTradeId</code> / <code>parentPositionId</code>, so mirrored/mechanical trades can be excluded and only genuine discretionary decisions graded.</li>
+</ul>
+
+<h2 class="section" id="arch"><span class="num">3</span>Architecture</h2>
+<div class="flow">
+  <div class="box">① <strong>Universe builder</strong> — <code>/user-info/people/search</code> + <code>/pi-data/copiers</code> → the set of PIs to track</div>
+  <div class="arrow">↓ daily</div>
+  <div class="box">② <strong>Snapshot collector (cron)</strong> — <code>/portfolio/live</code>, <code>/gain</code>, <code>/tradeinfo</code> per investor → raw snapshots</div>
+  <div class="arrow">↓</div>
+  <div class="box">③ <strong>Diff engine</strong> — compare consecutive snapshots → BUY / SELL events (ADD/TRIM backlog-only); copy-trades flagged</div>
+  <div class="arrow">↓</div>
+  <div class="box">④ <strong>Price enricher</strong> — <code>/market-data/.../history/candles</code> → instrument &amp; sector prices around each event</div>
+  <div class="arrow">↓</div>
+  <div class="box">⑤ <strong>Scoring engine</strong> — Track-Record X-Ray, entry alpha, exit alpha, decision score, blow-up risk</div>
+  <div class="arrow">↓</div>
+  <div class="box">⑥ <strong>API + Web app (Next.js)</strong> — scorecards, screener, alerts, shareable cards</div>
+</div>
+<p class="muted">Steps ①–⑤ are a backend worker pipeline that runs on a schedule. Step ⑥ reads pre-computed results — the web tier never calls eToro on the user's critical path.</p>
+
+<h2 class="section" id="api"><span class="num">4</span>eToro endpoints used</h2>
+<p>All relative to <code>https://public-api.etoro.com/api/v1</code>, with <code>x-request-id</code> on every call.</p>
+<div class="callout warn">
+  <strong>Auth — two distinct contexts, don't conflate them.</strong>
+  <br><strong>① Public PI crawler (backend, v0–v1):</strong> reads public investor data using the <em>operator's own</em> eToro account credentials (<code>x-api-key</code> + the operator account's <code>x-user-key</code>) — and only if eToro permits server-side public-PI aggregation under that account (terms item, §12). <strong>No end-user login is needed for the v1 X-Ray</strong> — scorecards are served from the pre-crawled DB.
+  <br><strong>② Per-user personalization (v3):</strong> "your copies" + own-account history (<code>/trading/info/trade/history</code>) require the <em>end-user's</em> credentials — their <code>x-api-key</code> + <code>x-user-key</code>, or OAuth / "Login with eToro" if/when an app <code>client_id</code>/<code>client_secret</code> is approved.
+  <br><strong>Open:</strong> the official <code>etoro-apps</code> skill documents the OAuth flow; the api-portal getting-started page documents only API keys. Confirm the App Store SSO onboarding path before building the v3 consumer auth UX.
+</div>
+<table>
+  <tr><th>Endpoint</th><th>Purpose</th><th>Rate class</th></tr>
+  <tr><td><code>GET /user-info/people/search</code></td><td>Build &amp; refresh the PI universe; the screener</td><td>Read (60/min)</td></tr>
+  <tr><td><code>GET /user-info/people</code></td><td>username ↔ CID mapping</td><td>Read</td></tr>
+  <tr><td><code>GET /user-info/people/{username}/portfolio/live</code></td><td><strong>Core.</strong> Open positions snapshot → diffing</td><td>Read</td></tr>
+  <tr><td><code>GET /user-info/people/{username}/gain</code></td><td>Monthly/yearly performance series</td><td>Read</td></tr>
+  <tr><td><code>GET /user-info/people/{username}/daily-gain</code></td><td>Daily series (<code>minDate</code>/<code>maxDate</code>)</td><td>Read</td></tr>
+  <tr><td><code>GET /user-info/people/{username}/tradeinfo</code></td><td>Aggregate stats (winRatio, risk, drawdown, leverage mix). Requires <code>period</code></td><td>Heavy (20/min)</td></tr>
+  <tr><td><code>GET /pi-data/copiers</code></td><td>Copier demographics for context</td><td>Read</td></tr>
+  <tr><td><code>GET /market-data/instruments/{id}/history/candles/{dir}/{interval}/{n}</code></td><td>Price for entry/exit grading (≤1000 candles)</td><td>Read</td></tr>
+  <tr><td><code>GET /market-data/instruments</code> / <code>/stocks-industries</code></td><td>Map instrument → sector for the benchmark</td><td>Read</td></tr>
+</table>
+
+<h2 class="section" id="data"><span class="num">5</span>Data model (Postgres)</h2>
+<pre><code>investors        (cid PK, username, is_pi, first_tracked_at, country_id, last_seen_at)
+
+snapshots        (id PK, investor_cid FK, taken_at, raw jsonb)        -- one row per poll
+
+positions_snap   (snapshot_id FK, position_id, instrument_id, open_ts,
+                  open_rate, is_buy, leverage, investment_pct, net_profit,
+                  social_trade_id, parent_position_id, is_copy bool)
+
+events           (id PK, investor_cid FK, type,            -- BUY|SELL emitted; ADD|TRIM reserved/non-emitting in v1
+                  instrument_id, position_id, detected_at,
+                  open_rate, exit_price_est, size_pct, is_copy bool)
+
+instrument_meta  (instrument_id PK, symbol, display_name, type_id, industry_id)
+
+prices           (instrument_id FK, d date, close)         -- cached candles; PK(instrument_id,d)
+
+decision_grades  (event_id FK, horizon_days, instr_return, bench_return,
+                  alpha, evaluable bool, graded_at)        -- one row per (event,horizon)
+
+investor_scores  (investor_cid FK, period, entry_alpha, exit_alpha,
+                  decision_score, confidence, xray_score,
+                  blowup_risk, updated_at)                 -- materialized for the UI</code></pre>
+<p class="muted">Keep <code>snapshots.raw</code> as JSONB so the schema can evolve without re-collecting. <code>positions_snap</code> is the normalized projection the diff engine reads.</p>
+
+<h2 class="section" id="diff"><span class="num">6</span>Diff &amp; event engine</h2>
+<p>For each investor, compare snapshot <code>S(t-1)</code> → <code>S(t)</code> by <code>position_id</code>:</p>
+<table>
+  <tr><th>Change</th><th>Event</th><th>Captured</th></tr>
+  <tr><td>position_id appears</td><td><span class="badge green">BUY</span></td><td>exact <code>open_rate</code>, <code>open_ts</code>, instrument, size, leverage</td></tr>
+  <tr><td>position_id gone</td><td><span class="badge red">SELL</span></td><td>instrument, exit window; <code>exit_price_est</code> from candles at <code>detected_at</code></td></tr>
+  <tr><td><code>investment_pct</code> ↑ (same position)</td><td><span class="badge amber">ADD?</span></td><td><em>suspected</em> — see caveat below</td></tr>
+  <tr><td><code>investment_pct</code> ↓ (still open)</td><td><span class="badge amber">TRIM?</span></td><td><em>suspected</em> — see caveat below</td></tr>
+</table>
+<div class="callout key">
+  <strong>First snapshot = baseline, not buys.</strong> The initial crawl for each PI seeds its open positions as the starting state and emits <em>no</em> events. Events are derived only from the 2nd snapshot onward — otherwise every pre-existing position would be misclassified as a fresh BUY and pollute entry-alpha from day one. <code>first_tracked_at</code> marks the boundary; scores count only events after it.
+</div>
+<div class="callout">
+  <strong>Copy-noise filter:</strong> if <code>social_trade_id</code> is set (mirrored trade) or the position is part of a copied portfolio, mark <code>is_copy = true</code> and exclude from decision scoring. We grade only what the investor chose themselves.
+</div>
+<div class="callout warn">
+  <strong>ADD/TRIM is unreliable in v1 — ship BUY/SELL only.</strong> The public live-portfolio endpoint exposes <code>investmentPct</code> (portfolio-relative) but not absolute units/size. Market moves or equity changes shift <code>investmentPct</code> with no trade, so a pct delta ≠ a decision. v1 classifies only <strong>new positionId (BUY)</strong> and <strong>disappeared positionId (SELL)</strong>. ADD/TRIM stays "suspected" until validated against real samples (and only if an absolute units field proves available).
+</div>
+<div class="callout warn">
+  <strong>Sampling caveat to log honestly:</strong> daily polling misses intraday round-trips (open + close between two snapshots). We surface scores as "based on observed decisions since {first_tracked_at}" and never imply completeness.
+</div>
+
+<h2 class="section" id="scoring"><span class="num">7</span>Scoring engine</h2>
+
+<h3>7.1 Track-Record X-Ray <span class="badge green">no accumulation needed — v1 launch feature</span></h3>
+<p class="muted" style="margin-top:0"><strong>Correction (code review):</strong> the earlier draft launched on a "copier-gain gap" from <code>copiersGain</code>. That field denotes change in the <em>number of copiers</em>, not copiers' investment returns — and no public endpoint exposes an arbitrary investor's copier returns (<code>CopyRealizedEquity_pnl</code> exists only for <em>your own</em> copiers, authenticated). That wedge is removed. v1 instead launches on a forensic verdict computed from the <strong>public return series</strong>, which needs zero accumulation:</p>
+<div class="formula">sharpe = mean(r) / stdev(r) · √periods&nbsp;&nbsp;|&nbsp;&nbsp;max_drawdown from cumulative gain&nbsp;&nbsp;|&nbsp;&nbsp;
+down_capture = mean(r | market&lt;0)&nbsp;&nbsp;|&nbsp;&nbsp;consistency = % profitable months</div>
+<p>Inputs: <code>/user-info/people/{username}/gain</code> (monthly/yearly) + <code>/daily-gain</code> + one <code>/portfolio/live</code> snapshot (current concentration &amp; leverage). Output: a "real-skill vs. luck" verdict — risk-adjusted return, <strong>return-series drawdown</strong>, behaviour in down markets, consistency, and current portfolio risk. All available day one.</p>
+<p class="muted"><strong>Drawdown caveat:</strong> <code>/gain</code> + <code>/daily-gain</code> give a <em>return series</em>, so drawdown here is return-series drawdown — not necessarily account-equity or intraday realized drawdown. Label it as such until the exact series semantics are verified with a provisioned key.</p>
+<div class="callout key">
+  <strong>v1 must be opinionated, not a dashboard.</strong> The X-Ray's value is the <em>verdict + explanation</em>, not the raw metrics. Each scorecard leads with a plain-language call and the reason:
+  <ul class="clean" style="margin:8px 0 0">
+    <li>"Great headline return — but <strong>poor downside behaviour</strong>: −38% in the last drawdown, slow to recover."</li>
+    <li>"High gain is <strong>mostly one regime</strong> — 71% of the 2-yr return came from a single 4-month window."</li>
+    <li>"Consistent low-drama compounder — <strong>shallow drawdowns, 78% green months</strong>."</li>
+  </ul>
+  Simple verdicts + strong explanations + shareable cards. If it reads like "yet another risk-adjusted ranking," it loses to BullAware. This is the difference between v1 working and v1 being noise.
+</div>
+<div class="callout warn"><strong>Honest positioning:</strong> this overlaps with eToro-owned BullAware. v1 X-Ray is the <em>acquisition funnel</em>; the moat is the Decision Alpha layer (§7.2–7.4) that accrues from snapshots and BullAware doesn't have. Win v1 on a sharper, opinionated verdict + speed; win retention on decisions-over-time.</div>
+
+<h3>7.2 Entry-timing alpha</h3>
+<p>For each BUY on instrument <code>i</code> at <code>t₀</code>, over horizon <code>h ∈ {1w, 1m, 3m}</code>:</p>
+<div class="formula">entry_alpha(i,h) = return(i, t₀→t₀+h) − return(sector(i), t₀→t₀+h)</div>
+<p>Investor entry alpha = <code>investment_pct</code>-weighted mean across evaluable buys. Positive = their buy timing beat just owning the sector.</p>
+
+<h3>7.3 Exit-timing alpha</h3>
+<p>For each SELL on instrument <code>i</code> at <code>t₁</code>, measure what happened <em>after</em> they left:</p>
+<div class="formula">exit_alpha(i,h) = −[ return(i, t₁→t₁+h) − return(sector(i), t₁→t₁+h) ]</div>
+<p>Stock fell after the sale (relative to sector) → positive (good exit). Stock kept rising → negative (the "sold too early" case the user described).</p>
+<div class="callout warn">
+  <strong>Don't ship the naïve version.</strong> "Price rose after sale = bad sell" mislabels good managers who rotated capital. v2 upgrades exit_alpha to a <em>reallocation</em> comparison: the sold stock's return vs. what they <em>bought with the proceeds</em> in the same window. Note: entry/exit alpha are <strong>v2</strong> features — they need accrued snapshot history. <strong>v1 ships only the Track-Record X-Ray (§7.1).</strong> Until enough history accrues, exit alpha is labelled "directional, single-horizon."
+</div>
+
+<h3>7.4 Decision score &amp; confidence</h3>
+<div class="formula">decision_score = w₁·z(entry_alpha) + w₂·z(exit_alpha)&nbsp;&nbsp;&nbsp;
+confidence = f(number of evaluable decisions, tracking duration)</div>
+<p>Z-scored across the tracked universe so the score is relative ("top 8% of PIs by entry timing"). Always shown <em>with</em> confidence — a 3-week-tracked investor is flagged "insufficient history," never given a false grade.</p>
+
+<h3>7.5 Blow-up risk <span class="badge amber">v3 alerts</span></h3>
+<div class="formula">blowup_risk = z(↑riskScore trend) + z(weeklyDd) + z(exposure) + z(↓copiers / baseLineCopiers)</div>
+<p>Rising risk + drawdown + leverage + copiers leaving → early-warning signal that drives the alert product.</p>
+
+<h2 class="section" id="roadmap"><span class="num">8</span>Phased roadmap</h2>
+<div class="phase">
+  <div class="when">M0 <small>Week 0–2 · private</small></div>
+  <div>
+    <strong>Proof, not product.</strong> <span class="badge green">DO THIS FIRST</span> Private collector on <strong>20–50 PIs</strong>, daily snapshots → diff → decision events, plus a prototype scorer in a notebook. <strong>Validate three things before any UI:</strong> (1) snapshots actually surface interesting decision events; (2) scoring produces <em>non-obvious</em> rankings — not just a re-sort of return/risk; (3) the output is genuinely more compelling than plain return/risk metrics. Needs only one API key; low terms exposure. <strong>Gate: proceed only if the proof is convincing.</strong>
+  </div>
+</div>
+<div class="phase">
+  <div class="when">Gate <small>before scaling</small></div>
+  <div>
+    <strong>Confirm platform terms.</strong> Before scaling the collector or building UI, resolve: does eToro permit <strong>server-side aggregation of public PI data under one operator account</strong>, and does App Store distribution allow this <strong>monetization model</strong>? These can decide viability — treat as blocking, not paperwork-later.
+  </div>
+</div>
+<div class="phase">
+  <div class="when">v0 <small>Week 2–3</small></div>
+  <div>
+    <strong>Scale the collector.</strong> Expand to the top ~300–500 PIs; instrument→sector map + candle cache. Banks permanent history while v1 is built. (Only after M0 proof + terms gate pass.)
+  </div>
+</div>
+<div class="phase">
+  <div class="when">v1 <small>Week 3–5</small></div>
+  <div>
+    <strong>Launch — Track-Record X-Ray + screener.</strong> Zero cold-start (computed from the public return series). Per-investor page: risk-adjusted return, return-series drawdown, down-market behaviour, consistency, current concentration/leverage, shareable card. <strong>No end-user auth</strong> for public scorecards (served from the pre-crawled DB); auth is deferred to v3 personalization (see §4). The user-acquisition wedge.
+  </div>
+</div>
+<div class="phase">
+  <div class="when">v2 <small>Month 2–3</small></div>
+  <div>
+    <strong>Decision Alpha goes live.</strong> Now backed by real accumulated history: entry alpha, exit alpha (reallocation-aware), decision score + confidence, "best/worst calls" feed with charts. The retention layer.
+  </div>
+</div>
+<div class="phase">
+  <div class="when">v3 <small>Month 3+</small></div>
+  <div>
+    <strong>Alerts &amp; personalization.</strong> Blow-up-risk + decision alerts on investors <em>you</em> copy, look-through exposure across your copies. Daily re-engagement → the paid tier.
+  </div>
+</div>
+
+<h2 class="section" id="coldstart"><span class="num">9</span>Cold-start strategy</h2>
+<div class="callout good">
+  <strong>The plan is designed so you never wait on data to launch.</strong> v1 ships on the Track-Record X-Ray (computed from the public return series — instant). Meanwhile the v0 collector banks the snapshot history that v2's Decision Alpha needs. By the time you launch v1, weeks of decision data are already accruing — a moat competitors can't backfill.
+</div>
+
+<h2 class="section" id="stack"><span class="num">10</span>Tech stack &amp; scale</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Recommended stack</h3>
+    <ul class="clean">
+      <li><strong>Frontend/API:</strong> Next.js (App Router) — you already know it</li>
+      <li><strong>DB:</strong> Postgres (Neon / Supabase)</li>
+      <li><strong>ORM:</strong> Drizzle</li>
+      <li><strong>Collector:</strong> dedicated Node worker (Railway / Fly) — not serverless; it needs a long-running scheduled loop with rate-limit pacing</li>
+      <li><strong>Queue/cache:</strong> Redis (rate-limit token bucket + job dedupe)</li>
+      <li><strong>Charts:</strong> lightweight (visx / Recharts)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Rate-limit budget (per user key)</h3>
+    <p class="muted" style="margin-top:0">Reads 60/min; <code>tradeinfo</code>-class 20/min. Daily crawl, 500 PIs:</p>
+    <table style="font-size:13px">
+      <tr><th>Call</th><th>Count</th><th>Class</th></tr>
+      <tr><td>portfolio/live</td><td>500</td><td>60/min</td></tr>
+      <tr><td>gain</td><td>500</td><td>60/min</td></tr>
+      <tr><td>tradeinfo × periods</td><td>500×N</td><td><strong>20/min</strong></td></tr>
+      <tr><td>people/search (paged)</td><td>~20</td><td>60/min</td></tr>
+      <tr><td>candles (event-driven, cached)</td><td>variable</td><td>60/min</td></tr>
+      <tr><td>instrument metadata (cached)</td><td>~once</td><td>60/min</td></tr>
+    </table>
+    <p class="muted"><code>tradeinfo</code> is the bottleneck: 500×N at 20/min = <strong>25×N min/day</strong>. Legitimate mitigations: fetch tradeinfo weekly (not daily), single period, narrow the universe, cache aggressively. The crawler authenticates with the <strong>operator account's <code>x-api-key</code> + <code>x-user-key</code></strong> (note: <code>x-user-key</code> is user-specific, <em>not</em> an app-level credential) — and only if eToro permits server-side public-PI aggregation under that account. Never end-users' keys (those are §4 context ②). Token-bucket + exponential backoff on 429.</p>
+    <div class="callout warn" style="margin-top:12px"><strong>Do not multi-key to scale.</strong> Limits are per user key, but provisioning multiple keys to raise an aggregate crawl ceiling reads as rate-limit circumvention — a <strong>terms/approval item, not a mitigation</strong>. If 500 PIs × daily won't fit one key's budget, <em>request elevated/commercial limits from eToro</em>; don't engineer around the cap.</div>
+  </div>
+</div>
+
+<h2 class="section" id="money"><span class="num">11</span>Distribution &amp; monetization</h2>
+<ul class="clean">
+  <li><strong>Distribution:</strong> publish to the eToro App Store (40M users). Shareable scorecards = organic top-of-funnel.</li>
+  <li><strong>Freemium:</strong> free single X-Ray scorecard → paid for alerts, full universe screening, and personalization to your copied investors.</li>
+  <li><strong>Confirm before pricing:</strong> the eToro Builders' Economy terms (monetization mechanics, data-redistribution rules) — unread; verify before charging.</li>
+</ul>
+
+<h2 class="section" id="risks"><span class="num">12</span>Risks &amp; open questions</h2>
+<table>
+  <tr><th>Item</th><th>Status</th><th>Mitigation / next step</th></tr>
+  <tr><td>No <em>public</em> arbitrary-PI closed-trade ledger</td><td><span class="badge red">Confirmed</span></td><td>Snapshot-diffing for PIs; own-account history via <code>/trading/info/trade/history</code> for personalization</td></tr>
+  <tr><td><code>copiersGain</code> = copier <em>count</em> change, not returns</td><td><span class="badge red">Confirmed</span></td><td>Docs verbatim: "the gain percentage of the number of copiers in a week." Copier-gap wedge removed; v1 = Track-Record X-Ray</td></tr>
+  <tr><td>OAuth gated behind app registration</td><td><span class="badge amber">Verify</span></td><td>v1 needs no end-user auth; v3/consumer auth fallback = user API keys. Confirm App Store SSO flow</td></tr>
+  <tr><td>ADD/TRIM via investmentPct unstable</td><td><span class="badge amber">Design</span></td><td>v1 = BUY/SELL only; investmentPct is portfolio-relative</td></tr>
+  <tr><td>Initial snapshot misclassified as buys</td><td><span class="badge amber">Design</span></td><td>First crawl = baseline (no events); score only post-<code>first_tracked_at</code></td></tr>
+  <tr><td>Multi-key crawler scaling</td><td><span class="badge red">Terms</span></td><td>One operator key; request elevated/commercial limits — don't multi-key to bypass</td></tr>
+  <tr><td>"Drawdown" series semantics</td><td><span class="badge amber">Verify</span></td><td>Label as return-series drawdown until <code>/gain</code> semantics confirmed</td></tr>
+  <tr><td>Daily polling misses intraday trades</td><td><span class="badge amber">Accepted</span></td><td>Label scores as "observed decisions"; consider higher poll frequency for top PIs</td></tr>
+  <tr><td>Exit price is estimated, not exact</td><td><span class="badge amber">Accepted</span></td><td>Use candle close at detection; grade on horizon returns, not the exact tick</td></tr>
+  <tr><td>Naïve "bad sell" logic misleads</td><td><span class="badge amber">Design</span></td><td>v2 reallocation-aware exit alpha; v1 labels exit as directional</td></tr>
+  <tr><td>eToro owns BullAware (competitor)</td><td><span class="badge amber">Strategic</span></td><td>Differentiate on decisions-over-time + alerts, not snapshot analytics</td></tr>
+  <tr><td>Candle <code>interval</code> values / exact field casing</td><td><span class="badge amber">Verify</span></td><td>Confirm against api-portal once an API key is provisioned</td></tr>
+  <tr><td>Server-side aggregation permitted?</td><td><span class="badge red">Gate</span></td><td>Confirm eToro allows public-PI aggregation under one operator account <em>before</em> scaling collector/UI</td></tr>
+  <tr><td>App Store monetization &amp; data terms</td><td><span class="badge amber">Unread</span></td><td>Read Builders' Economy PDF before charging</td></tr>
+</table>
+
+<footer>
+  Decision Alpha — implementation plan, <strong>Rev 6</strong> (Rev 2: copiersGain misread, auth gating, trade-history scope, rate-limit budget, ADD/TRIM. Rev 3: purged stale copier-gain refs, baseline-snapshot rule, return-series drawdown, multi-key as terms item. Rev 4: split crawler-vs-user auth contexts, precise credential model, ADD/TRIM marked non-emitting, copiersGain confirmed. Rev 5: v1 needs no end-user auth, overview trade-ledger claim scoped. Rev 6: proof-first M0 milestone (20–50 PIs) + terms gate before UI, opinionated-verdict spec for v1). Generated 2026-05-30. Built on the verified eToro Public API surface and the official <code>etoro-apps</code> skill. Items marked "Verify" require a provisioned API key + recovered api-portal docs to finalize.
+</footer>
+</main>
+</div>
+</body>
+</html>
